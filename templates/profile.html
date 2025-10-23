@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+{% block title %}Profile - NearbyNomad{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+  <div class="profile-card">
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="profile-avatar">
+        <i class="fa-solid fa-user"></i>
+      </div>
+      <h1>{{ user.name }}</h1>
+      <p class="subtitle">{{ email }}</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="profile-stats">
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-trophy"></i></div>
+        <div class="stat-value">{{ user.level }}</div>
+        <div class="stat-label">Level</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-star"></i></div>
+        <div class="stat-value">{{ user.xp }}</div>
+        <div class="stat-label">XP Points</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+        <div class="stat-value">{{ user.trips }}</div>
+        <div class="stat-label">Trips</div>
+      </div>
+    </div>
+
+    <!-- Progress Section -->
+    <div class="progress-section">
+      <h3>Progress to Level {{ user.level + 1 }}</h3>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: {{ (user.xp % 100) }}%"></div>
+      </div>
+      <p class="progress-text">{{ user.xp % 100 }}/100 XP</p>
+    </div>
+
+    <!-- Achievements -->
+    <div class="achievements-section">
+      <h3>Achievements</h3>
+      <div class="achievements-grid">
+        {% if user.trips >= 1 %}
+        <div class="achievement active">
+          <span class="achievement-icon"><i class="fa-solid fa-flag-checkered"></i></span>
+          <span class="achievement-name">First Trip</span>
+        </div>
+        {% else %}
+        <div class="achievement">
+          <span class="achievement-icon"><i class="fa-solid fa-lock"></i></span>
+          <span class="achievement-name">First Trip</span>
+        </div>
+        {% endif %}
+
+        {% if user.trips >= 5 %}
+        <div class="achievement active">
+          <span class="achievement-icon"><i class="fa-solid fa-compass"></i></span>
+          <span class="achievement-name">Explorer</span>
+        </div>
+        {% else %}
+        <div class="achievement">
+          <span class="achievement-icon"><i class="fa-solid fa-lock"></i></span>
+          <span class="achievement-name">Explorer</span>
+        </div>
+        {% endif %}
+
+        {% if user.trips >= 10 %}
+        <div class="achievement active">
+          <span class="achievement-icon"><i class="fa-solid fa-medal"></i></span>
+          <span class="achievement-name">Adventurer</span>
+        </div>
+        {% else %}
+        <div class="achievement">
+          <span class="achievement-icon"><i class="fa-solid fa-lock"></i></span>
+          <span class="achievement-name">Adventurer</span>
+        </div>
+        {% endif %}
+
+        {% if user.level >= 5 %}
+        <div class="achievement active">
+          <span class="achievement-icon"><i class="fa-solid fa-crown"></i></span>
+          <span class="achievement-name">Nomad King</span>
+        </div>
+        {% else %}
+        <div class="achievement">
+          <span class="achievement-icon"><i class="fa-solid fa-lock"></i></span>
+          <span class="achievement-name">Nomad King</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="profile-actions">
+      <a href="{{ url_for('preferences') }}" class="btn btn-primary">Plan New Trip</a>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ===== LIGHT MODE ===== */
+.profile-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 80px);
+  background: #f9fafb;
+  padding: 2rem;
+}
+
+.profile-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 2.5rem;
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.profile-header {
+  margin-bottom: 2rem;
+}
+
+.profile-avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  margin: 0 auto 1rem;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+/* ---- Stats ---- */
+.profile-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.stat-card {
+  flex: 1;
+  background: #f3f4f6;
+  border-radius: 12px;
+  padding: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
+.stat-icon i {
+  font-size: 1.5rem;
+  color: #2563eb;
+}
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-top: 0.3rem;
+  color: #111827;
+}
+.stat-label {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* ---- Progress ---- */
+.progress-section {
+  margin: 2rem 0;
+}
+.progress-bar {
+  background: #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  height: 10px;
+}
+.progress-fill {
+  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+  height: 10px;
+  transition: width 0.5s ease;
+}
+.progress-text {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* ---- Achievements ---- */
+.achievements-section {
+  margin-top: 2.5rem;
+}
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.achievement {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+.achievement.active {
+  border-color: #2563eb;
+  background: linear-gradient(135deg, #dbeafe, #eff6ff);
+}
+.achievement-icon i {
+  font-size: 1.5rem;
+  color: #94a3b8;
+}
+.achievement.active .achievement-icon i {
+  color: #2563eb;
+}
+.achievement-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #111827;
+  margin-top: 0.3rem;
+}
+
+/* ---- Button ---- */
+.profile-actions {
+  margin-top: 2.5rem;
+}
+.btn-primary {
+  display: inline-block;
+  padding: 0.9rem 1.6rem;
+  font-weight: 600;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+  color: #fff;
+  transition: all 0.25s ease;
+}
+.btn-primary:hover {
+  background: #1e40af;
+  transform: scale(1.03);
+}
+
+/* ===== DARK MODE (Advanced) ===== */
+:root[data-theme='dark'] .profile-container {
+  background: #0f172a;
+}
+
+:root[data-theme='dark'] .profile-card {
+  background: linear-gradient(145deg, #0f172a, #111827);
+  border: 1px solid #1e293b;
+  color: #e2e8f0;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+:root[data-theme='dark'] .profile-avatar {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35);
+}
+
+:root[data-theme='dark'] h1 {
+  color: #60a5fa;
+}
+:root[data-theme='dark'] .subtitle {
+  color: #94a3b8;
+}
+
+:root[data-theme='dark'] .stat-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+:root[data-theme='dark'] .stat-icon i {
+  color: #60a5fa;
+}
+:root[data-theme='dark'] .stat-value {
+  color: #f1f5f9;
+}
+:root[data-theme='dark'] .stat-label {
+  color: #94a3b8;
+}
+
+:root[data-theme='dark'] .progress-bar {
+  background: #1e293b;
+}
+:root[data-theme='dark'] .progress-fill {
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+}
+:root[data-theme='dark'] .progress-text {
+  color: #94a3b8;
+}
+
+:root[data-theme='dark'] .achievement {
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+:root[data-theme='dark'] .achievement.active {
+  background: linear-gradient(145deg, #1e3a8a, #2563eb);
+  border-color: #3b82f6;
+  color: #f1f5f9;
+  box-shadow: 0 0 14px rgba(59,130,246,0.25);
+}
+:root[data-theme='dark'] .achievement-icon i {
+  color: #64748b;
+}
+:root[data-theme='dark'] .achievement.active .achievement-icon i {
+  color: #93c5fd;
+}
+:root[data-theme='dark'] .achievement-name {
+  color: #e2e8f0;
+}
+
+:root[data-theme='dark'] .btn-primary {
+  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(37,99,235,0.3);
+}
+:root[data-theme='dark'] .btn-primary:hover {
+  background: #1e3a8a;
+  box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+}
+</style>
+{% endblock %}

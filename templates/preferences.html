@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+{% block title %}Your Preferences - NearbyNomad{% endblock %}
+
+{% block content %}
+<div class="preferences-wrapper">
+  <div class="preferences-card">
+    <header class="prefs-header">
+      <h1>Hi, {{ user.name }}!</h1>
+      <p class="subtitle">Tell us what you're looking for today</p>
+    </header>
+
+    <form method="POST" action="{{ url_for('preferences') }}" id="prefsForm" novalidate>
+      <!-- Mood -->
+      <section class="form-section">
+        <h3>How are you feeling?</h3>
+        <div class="options-grid mood-grid">
+          {% for mood, icon in [('Happy','fa-face-smile'), ('Tired','fa-bed'), ('Calm','fa-spa'), ('Romantic','fa-heart'), ('Sad','fa-face-frown'), ('Excited','fa-star')] %}
+          <label class="option">
+            <input type="radio" name="mood" value="{{ mood }}">
+            <span class="option-card">
+              <i class="fa-solid {{ icon }} option-graphic"></i>
+              <span class="option-text">{{ mood }}</span>
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- Budget -->
+      <section class="form-section">
+        <h3>What’s your budget?</h3>
+        <div class="budget-row">
+          <div class="range-wrap">
+            <input class="range" type="range" id="budget" name="budget" min="0" max="20000" value="2000" step="100">
+            <output id="budgetValue" class="range-bubble">₹2000</output>
+            <div class="range-ticks"><span>0</span><span>5k</span><span>10k</span><span>15k</span><span>20k</span></div>
+          </div>
+          <div class="budget-preview">₹<span id="budgetPreview">2000</span></div>
+        </div>
+      </section>
+
+      <!-- Energy -->
+      <section class="form-section">
+        <h3>Energy level</h3>
+        <div class="options-grid energy-grid">
+          {% for level, icon, dist in [('Low','fa-battery-quarter',10), ('Medium','fa-battery-half',50), ('High','fa-battery-full',150)] %}
+          <label class="option">
+            <input type="radio" name="energy" value="{{ dist }}">
+            <span class="option-card small">
+              <i class="fa-solid {{ icon }} option-graphic"></i>
+              <span class="option-text">{{ level }}<br><small>~{{ dist }}km</small></span>
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- Activity -->
+      <section class="form-section">
+        <h3>What do you want to do?</h3>
+        <div class="options-grid type-grid">
+          {% for type, icon in [('Relax','fa-couch'), ('Play','fa-gamepad'), ('Eat','fa-utensils'), ('Sightseeing','fa-camera'), ('Nature','fa-tree'), ('Sports','fa-football'), ('Events','fa-calendar-days')] %}
+          <label class="option">
+            <input type="checkbox" name="type" value="{{ type }}">
+            <span class="option-card">
+              <i class="fa-solid {{ icon }} option-graphic"></i>
+              <span class="option-text">{{ type }}</span>
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- Food -->
+      <section class="form-section">
+        <h3>Food preferences (optional)</h3>
+        <div class="options-grid food-grid">
+          {% for food, icon in [('Junk Food','fa-burger'), ('Home Food','fa-house'), ('Desserts','fa-ice-cream')] %}
+          <label class="option">
+            <input type="checkbox" name="subtype" value="{{ food }}">
+            <span class="option-card">
+              <i class="fa-solid {{ icon }} option-graphic"></i>
+              <span class="option-text">{{ food }}</span>
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Find Places</button>
+        <button type="button" id="clearBtn" class="btn btn-secondary">Clear</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const form = document.getElementById('prefsForm');
+const budget = document.getElementById('budget');
+const budgetValue = document.getElementById('budgetValue');
+const budgetPreview = document.getElementById('budgetPreview');
+const clearBtn = document.getElementById('clearBtn');
+
+function updateBudgetUI() {
+  const val = parseInt(budget.value, 10);
+  budgetValue.textContent = `₹${val.toLocaleString()}`;
+  budgetPreview.textContent = val.toLocaleString();
+  const pct = (val - budget.min) / (budget.max - budget.min);
+  // Adjusted offset for better centering of the bubble
+  budgetValue.style.left = `calc(${pct * 100}% + (${-25 + (pct * 50)}px))`; // Dynamic adjustment for bubble
+}
+budget.addEventListener('input', updateBudgetUI);
+updateBudgetUI(); // Initial call to set bubble position
+
+clearBtn.addEventListener('click', () => {
+  form.reset();
+  form.querySelectorAll('.option').forEach(l => l.classList.remove('selected'));
+  budget.value = 2000;
+  updateBudgetUI();
+});
+
+form.querySelectorAll('.option input').forEach(input => {
+  input.addEventListener('change', () => {
+    const label = input.closest('.option');
+    if (input.type === 'radio') {
+      const section = input.closest('.form-section');
+      section.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+    }
+    label.classList.toggle('selected', input.checked);
+  });
+  // Also set initial selected state if any input is checked by default (e.g., from server)
+  if (input.checked) {
+    input.closest('.option').classList.add('selected');
+  }
+});
+</script>
+
+<style>
+/* General reset or base styles would typically be in a separate file or at the top */
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif; /* Assuming Inter or similar font is linked */
+  background: var(--page-bg);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* ===== LAYOUT ===== */
+.preferences-wrapper {
+  display: flex;
+  justify-content: center; /* Centers horizontally */
+  align-items: flex-start; /* Aligns to the top, useful if content is shorter than screen */
+  min-height: 100vh; /* Ensures it takes full viewport height for vertical centering */
+  padding: 5rem 1.5rem; /* Padding top/bottom and sides */
+  background: var(--page-bg);
+}
+
+.preferences-card {
+  width: 100%;
+  max-width: 880px; /* Optimal width for readability and layout */
+  background: var(--card-bg);
+  border-radius: 18px; /* Slightly less rounded than 20px, more modern */
+  padding: 3.5rem 3rem; /* Generous internal padding */
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25); /* Adjusted shadow for depth */
+  border: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem; /* Consistent vertical spacing between main sections */
+}
+
+/* Responsive padding for smaller screens */
+@media (max-width: 768px) {
+  .preferences-card {
+    padding: 2.5rem 1.5rem;
+  }
+}
+
+/* ===== TYPOGRAPHY ===== */
+h1 {
+  font-size: 2.2rem; /* Larger for impact */
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+.subtitle {
+  font-size: 1.1rem; /* Clear and readable */
+  color: var(--text-secondary);
+  margin-top: 0.6rem; /* More space below H1 */
+  line-height: 1.4;
+}
+.form-section h3 {
+  font-size: 1.25rem; /* Prominent section titles */
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1.2rem; /* More space before options grid */
+}
+
+/* ===== FORM GRID ===== */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem; /* Uniform vertical rhythm between form sections */
+}
+.options-grid {
+  display: grid;
+  gap: 0.8rem; /* Slightly reduced gap between cards for a more compact look */
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); /* Balanced smaller size */
+}
+/* Specific adjustments for smaller card types */
+.energy-grid, .food-grid {
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); /* Even smaller for these */
+}
+
+/* Adjust grid for very small screens */
+@media (max-width: 480px) {
+  .options-grid {
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); /* Allow smaller cards on mobile */
+    gap: 0.6rem;
+  }
+  .mood-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Maintain slightly larger size for mood */
+  }
+}
+
+
+/* ===== OPTION CARDS ===== */
+.option input { display: none; }
+.option-card {
+  display: flex; /* Use flex for internal alignment */
+  flex-direction: column;
+  align-items: center; /* Center icon and text */
+  justify-content: center; /* Center content vertically if variable height */
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 0.6rem; /* Reduced padding */
+  text-align: center;
+  transition: all 0.25s ease;
+  min-height: 80px; /* Consistent height for cards */
+}
+.option-card.small { /* For energy/food grid */
+    min-height: 70px; /* Even smaller min-height */
+    padding: 0.8rem 0.5rem; /* Reduced padding */
+}
+
+.option:hover .option-card {
+  transform: translateY(-4px);
+  border-color: var(--primary);
+  box-shadow: 0 6px 20px rgba(37,99,235,0.15);
+}
+.option.selected .option-card {
+  background: var(--highlight);
+  border-color: var(--primary);
+  box-shadow: 0 0 16px rgba(37,99,235,0.25);
+}
+.option-graphic {
+  font-size: 1.4rem; /* Slightly smaller icon */
+  color: var(--primary);
+  margin-bottom: 0.5rem; /* Slightly less space between icon and text */
+}
+.option-text {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem; /* Slightly smaller text */
+  line-height: 1.3;
+}
+.option-text small {
+    font-size: 0.75rem; /* Smaller text for distance */
+    color: var(--text-secondary);
+}
+
+/* ===== RANGE SLIDER ===== */
+.budget-row {
+  display: flex;
+  flex-direction: column; /* Stack range and preview on small screens */
+  align-items: center; /* Center items when stacked */
+  gap: 1.5rem; /* Space between slider and preview */
+  padding-top: 1rem; /* Give some space from the section title */
+}
+
+@media (min-width: 600px) {
+  .budget-row {
+    flex-direction: row; /* Side-by-side on larger screens */
+    gap: 2rem;
+  }
+}
+
+.range-wrap {
+  flex: 1;
+  width: 100%; /* Ensure it takes full width when stacked */
+  position: relative;
+  padding: 0 10px; /* Add some horizontal padding for thumb visibility */
+}
+.range {
+  width: 100%;
+  height: 8px; /* Thicker slider track */
+  appearance: none;
+  border-radius: 10px; /* More defined roundness */
+  background: linear-gradient(90deg, var(--primary), var(--border));
+  outline: none; /* Remove default focus outline */
+  margin: 0;
+}
+.range::-webkit-slider-thumb {
+  appearance: none;
+  width: 22px; /* Larger thumb */
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  border: 4px solid var(--primary); /* Thicker border */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3); /* More prominent shadow */
+  transition: 0.2s ease;
+  cursor: grab;
+}
+.range::-webkit-slider-thumb:active {
+    cursor: grabbing;
+}
+
+.range-bubble {
+  position: absolute;
+  top: -42px; /* Higher above the slider */
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.85rem; /* Slightly larger text */
+  padding: 5px 10px; /* More padding */
+  border-radius: 8px; /* More rounded */
+  font-weight: 600;
+  white-space: nowrap; /* Prevent text wrapping */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  transform: translateX(-50%); /* Base centering */
+  transition: left 0.05s ease-out; /* Smooth bubble movement */
+}
+.range-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 8px; /* More space below slider */
+  width: calc(100% - 20px); /* Account for range-wrap padding */
+  margin-left: 10px;
+}
+.budget-preview {
+  color: var(--text-primary); /* Use primary text color for value */
+  font-weight: 700;
+  font-size: 1.2rem; /* Larger and more prominent */
+  min-width: 80px; /* Ensure consistent width */
+  text-align: right;
+}
+
+/* ===== BUTTONS ===== */
+.form-actions {
+  display: flex;
+  gap: 1.2rem; /* More space between buttons */
+  margin-top: 1.5rem; /* Space from last form section */
+  justify-content: flex-end; /* Align buttons to the right */
+}
+
+@media (max-width: 480px) {
+    .form-actions {
+        flex-direction: column; /* Stack buttons on very small screens */
+        align-items: stretch; /* Make them full width */
+        justify-content: center;
+    }
+}
+
+.btn {
+  font-size: 1rem; /* Slightly larger text */
+  padding: 0.9rem 1.8rem; /* More padding */
+  font-weight: 600;
+  border-radius: 10px; /* More rounded */
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap; /* Prevent button text from wrapping */
+}
+.btn-primary {
+  background: var(--primary-gradient);
+  color: #fff;
+  border: none;
+  box-shadow: 0 8px 28px rgba(37,99,235,0.4); /* More prominent shadow */
+}
+.btn-primary:hover {
+    box-shadow: 0 10px 32px rgba(37,99,235,0.5);
+    transform: translateY(-2px);
+}
+.btn-secondary {
+  border: 1.5px solid var(--border);
+  color: var(--text-primary);
+  background: transparent;
+}
+.btn-secondary:hover {
+  background: var(--highlight);
+  border-color: var(--primary);
+  color: var(--primary); /* Highlight text color on hover */
+}
+
+/* ===== THEMES (Unchanged, but ensure they are properly defined) ===== */
+:root {
+  --primary: #2563eb;
+  --primary-gradient: linear-gradient(90deg, #2563eb, #1d4ed8);
+  --page-bg: #f9fafb;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --surface: #f3f4f6;
+  --highlight: #e0edff;
+  --border: #d1d5db;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+}
+
+:root[data-theme='dark'] {
+  --page-bg: #0f172a;
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --surface: #273549;
+  --highlight: rgba(59,130,246,0.15);
+  --border: #475569;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --primary: #3b82f6; /* Adjusted for better visibility in dark mode */
+  --primary-gradient: linear-gradient(90deg, #3b82f6, #2563eb); /* Adjusted for dark mode */
+}
+</style>
+{% endblock %}

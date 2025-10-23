@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}NearbyNomad{% endblock %}</title>
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome 6 (modern icons) -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    integrity="sha512-KL3y6UqbyqYl1q2Qw6R+3pYhzHqA2WQ5Pz0zjZAw1ee9d9KkI/8lycbQyKqgkEnHwxDOrS06+RMP2UJnG5N0bw=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+</head>
+
+<body>
+  <!-- ===== NAVBAR ===== -->
+  <header class="navbar">
+    <div class="container">
+      <!-- Brand -->
+      <a href="{{ url_for('preferences') }}" class="nav-brand">
+        <i class="fa-solid fa-compass"></i>
+        <span>NearbyNomad</span>
+      </a>
+
+      <!-- Navigation -->
+      <nav class="nav-links">
+        {% if session.get('user') %}
+        <a href="{{ url_for('preferences') }}"><i class="fa-solid fa-house"></i> Home</a>
+        <a href="{{ url_for('profile') }}"><i class="fa-solid fa-user"></i> Profile</a>
+        <a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        {% endif %}
+
+        <!-- Modern Theme Toggle -->
+        <div class="theme-toggle" id="theme-toggle" aria-label="Toggle theme" role="button">
+          <i class="fa-solid fa-moon"></i>
+          <i class="fa-solid fa-sun"></i>
+          <div class="toggle-thumb"></div>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <p>&copy; 2025 <strong>NearbyNomad</strong> — Discover your next adventure.</p>
+    <p>Crafted with <i class="fa-solid fa-heart" style="color:#ef4444;"></i> for explorers.</p>
+  </footer>
+
+  <!-- ===== THEME TOGGLE SCRIPT ===== -->
+  <script>
+    const toggle = document.getElementById("theme-toggle");
+    const root = document.documentElement;
+
+    // Load saved theme
+    if (localStorage.getItem("theme") === "dark") {
+      root.setAttribute("data-theme", "dark");
+      toggle.classList.add("active");
+    }
+
+    toggle.addEventListener("click", () => {
+      const isDark = root.getAttribute("data-theme") === "dark";
+      if (isDark) {
+        root.removeAttribute("data-theme");
+        localStorage.setItem("theme", "light");
+        toggle.classList.remove("active");
+      } else {
+        root.setAttribute("data-theme", "dark");
+        localStorage.setItem("theme", "dark");
+        toggle.classList.add("active");
+      }
+    });
+  </script>
+
+  <!-- ===== POLISHED THEME TOGGLE STYLE ===== -->
+  <style>
+    .theme-toggle {
+      width: 60px;
+      height: 32px;
+      background: var(--surface-2);
+      border-radius: 999px;
+      border: 1.5px solid var(--surface-border);
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px;
+      transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      overflow: hidden;
+    }
+
+    .theme-toggle:hover {
+      box-shadow: 0 0 14px rgba(79, 158, 248, 0.25);
+    }
+
+    .theme-toggle i {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      z-index: 2;
+      pointer-events: none;
+      transition: color 0.3s ease;
+    }
+
+    .theme-toggle .toggle-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--white);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      transition: transform 0.35s ease, background 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    .theme-toggle.active {
+      background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+      border-color: var(--primary);
+    }
+
+    .theme-toggle.active .toggle-thumb {
+      transform: translateX(28px);
+      background: var(--gray-50);
+      box-shadow: 0 0 10px rgba(79,158,248,0.5);
+    }
+
+    .theme-toggle.active .fa-sun {
+      color: #FFD54F;
+    }
+
+    .theme-toggle.active .fa-moon {
+      color: var(--gray-100);
+    }
+
+    /* Optional glow pulse */
+    .theme-toggle.active::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle, rgba(96,165,250,0.25) 0%, transparent 70%);
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      animation: glowPulse 2.8s infinite ease-in-out;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% {
+        opacity: 0.5;
+        transform: translate(-50%, -50%) scale(1);
+      }
+      50% {
+        opacity: 0.2;
+        transform: translate(-50%, -50%) scale(1.3);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        gap: 1rem;
+      }
+      .theme-toggle {
+        width: 52px;
+        height: 28px;
+      }
+      .theme-toggle .toggle-thumb {
+        width: 22px;
+        height: 22px;
+      }
+    }
+  </style>
+</body>
+</html>

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Location - NearbyNomad{% endblock %}
+
+{% block content %}
+<div class="location-page">
+  <div class="location-card">
+    <h1>Share Your Location</h1>
+    <p class="subtitle">We’ll use your location to recommend places nearby</p>
+
+    <div id="locationStatus" class="info-message">
+      Click the button below to allow access.
+    </div>
+
+    <button id="getLocationBtn" class="btn btn-primary">
+      <i class="fa-solid fa-location-crosshairs"></i> Get My Location
+    </button>
+
+    <div id="loading" class="loading" style="display: none;">
+      <div class="spinner"></div>
+      <p>Fetching your location...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const getLocationBtn = document.getElementById('getLocationBtn');
+  const locationStatus = document.getElementById('locationStatus');
+  const loading = document.getElementById('loading');
+
+  getLocationBtn.addEventListener('click', () => {
+    if (!navigator.geolocation) {
+      showError('Geolocation is not supported by your browser.');
+      return;
+    }
+
+    toggleLoading(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        fetch('{{ url_for("location") }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              locationStatus.className = 'info-message';
+              locationStatus.textContent = 'Location saved successfully!';
+              setTimeout(() => {
+                window.location.href = '{{ url_for("recommendations") }}';
+              }, 800);
+            } else {
+              showError('Failed to save location. Please try again.');
+            }
+          })
+          .catch(() => showError('Something went wrong. Try again.'));
+      },
+      (error) => {
+        let msg = 'Unable to retrieve your location.';
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            msg = 'Please allow location access to continue.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            msg = 'Location information unavailable.';
+            break;
+          case error.TIMEOUT:
+            msg = 'Location request timed out.';
+            break;
+        }
+        showError(msg);
+      }
+    );
+  });
+
+  function showError(message) {
+    toggleLoading(false);
+    locationStatus.className = 'error-message';
+    locationStatus.textContent = message;
+    getLocationBtn.style.display = 'block';
+  }
+
+  function toggleLoading(isLoading) {
+    loading.style.display = isLoading ? 'block' : 'none';
+    getLocationBtn.style.display = isLoading ? 'none' : 'block';
+  }
+</script>
+
+<style>
+  /* ===== PAGE LAYOUT ===== */
+  .location-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 75vh;
+    padding: 2rem;
+  }
+
+  .location-card {
+    background: linear-gradient(145deg, var(--surface-2), var(--surface-1));
+    border: 1px solid var(--surface-border);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .location-card h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-high);
+    margin-bottom: 0.75rem;
+  }
+
+  .location-card .subtitle {
+    color: var(--text-medium);
+    font-size: 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  /* ===== STATUS MESSAGES ===== */
+  .info-message,
+  .error-message {
+    padding: 0.9rem 1rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .info-message {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border: 1px solid var(--primary);
+  }
+
+  .error-message {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+  }
+
+  /* ===== BUTTON ===== */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.9rem 1rem;
+    font-size: 1rem;
+  }
+
+  .btn-primary i {
+    font-size: 1rem;
+  }
+
+  /* ===== LOADING STATE ===== */
+  .loading {
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+
+  .spinner {
+    border: 3px solid var(--surface-border);
+    border-top: 3px solid var(--primary);
+    border-radius: 50%;
+    width: 42px;
+    height: 42px;
+    margin: 0 auto 1rem;
+    animation: spin 1s linear infinite;
+  }
+
+  .loading p {
+    color: var(--text-medium);
+    font-size: 0.95rem;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .location-card {
+      padding: 2rem 1.5rem;
+    }
+
+    .location-card h1 {
+      font-size: 1.5rem;
+    }
+
+    .location-card .subtitle {
+      font-size: 0.95rem;
+    }
+  }
+</style>
+{% endblock %}
